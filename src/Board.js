@@ -14,10 +14,9 @@ const Board = () => {
     ]);
     const [selected, setSelected] = useState({ x: null, y: null });
     const [invalidMove, setInvalidMove] = useState(false);
+    const [whitesMove, setWhitesMove] = useState(true);
 
     const handleSquareClick = (x, y) => {
-        console.log("current selected: " + selected.x + " " + selected.y);
-        console.log("new selected: " + x + " " + y);
         if (selected.x === null) {
             setSelected({ x, y });
         } else {
@@ -41,6 +40,7 @@ const Board = () => {
                 gameCopy[y][x] = game[selected.y][selected.x];
                 setGame(gameCopy);
                 setInvalidMove(false);
+                setWhitesMove(!whitesMove);
             } else {
                 console.log('Invalid move');
                 setInvalidMove(true);
@@ -53,7 +53,7 @@ const Board = () => {
         // Destructure the x and y values of the selected square from the `selected` object
         const { x: selectedX, y: selectedY } = selected;
         // Check if the selected pawn is white
-        if (color === 'white') {
+        if (color === 'white' && whitesMove) {
             // Check if the pawn is moving forward one square and there is no piece in that square
             if (y === selectedY - 1 && x === selectedX && !game[y][x]) {
                 return true;
