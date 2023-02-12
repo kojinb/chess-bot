@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const pieces = {
   white_pawn: 'https://upload.wikimedia.org/wikipedia/commons/0/04/Chess_plt60.png',
@@ -16,13 +16,16 @@ const pieces = {
 };
 
 const Square = (props) => {
+  let name = props.piece ? props.piece_color + "_" + props.piece : '';
+
   const style = {
     width: '50px',
     height: '50px',
     backgroundColor: props.color,
-    backgroundImage: `url(${pieces[props.piece]})`,
+    backgroundImage: `url(${pieces[name]})`,
     backgroundSize: 'cover',
   };
+
   return (
     <div
       style={style}

@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import Square from './Square';
+import Piece from './Piece';
 
 const Board = () => {
     const [game, setGame] = useState([
-        ['black_rook', 'black_knight', 'black_bishop', 'black_queen', 'black_king', 'black_bishop', 'black_knight', 'black_rook'],
-        Array(8).fill('black_pawn'),
+        [Piece('rook', 'black'), Piece('knight', 'black'), Piece('bishop', 'black'), Piece('queen', 'black'), Piece('king','black'), Piece('bishop','black'), Piece('knight','black'), Piece('rook','black')],
+        Array(8).fill(Piece('pawn', 'black')),
         Array(8).fill(null),
         Array(8).fill(null),
         Array(8).fill(null),
         Array(8).fill(null),
-        Array(8).fill('white_pawn'),
-        ['white_rook', 'white_knight', 'white_bishop', 'white_queen', 'white_king', 'white_bishop', 'white_knight', 'white_rook'],
+        Array(8).fill(Piece('pawn', 'white')),
+        [Piece('rook', 'white'), Piece('knight', 'white'), Piece('bishop', 'white'), Piece('king','white'), Piece('queen', 'white'), Piece('bishop','white'), Piece('knight','white'), Piece('rook','white')],
     ]);
+
     const [selected, setSelected] = useState({ x: null, y: null });
     const [invalidMove, setInvalidMove] = useState(false);
     const [whitesMove, setWhitesMove] = useState(true);
@@ -23,12 +25,9 @@ const Board = () => {
             const gameCopy = JSON.parse(JSON.stringify(game));
             const piece = game[selected.y][selected.x];
             let isValidMove = false;
-            switch (piece) {
-                case 'white_pawn':
-                    isValidMove = isValidPawnMove(game, selected, x, y, 'white');
-                    break;
-                case 'black_pawn':
-                    isValidMove = isValidPawnMove(game, selected, x, y, 'black');
+            switch (piece.name) {
+                case 'pawn':
+                    isValidMove = isValidPawnMove(game, selected, x, y);
                     break;
                 case 'rook':
                     isValidMove = isValidRookMove(game, selected, x, y);
@@ -52,8 +51,10 @@ const Board = () => {
     const isValidPawnMove = (game, selected, x, y, color) => {
         // Destructure the x and y values of the selected square from the `selected` object
         const { x: selectedX, y: selectedY } = selected;
+        const piece = game[selectedY][selectedX];
+
         // Check if the selected pawn is white
-        if (color === 'white' && whitesMove) {
+        if (piece.color === 'white' && whitesMove) {
             // Check if the pawn is moving forward one square and there is no piece in that square
             if (y === selectedY - 1 && x === selectedX && !game[y][x]) {
                 return true;
@@ -96,12 +97,22 @@ const Board = () => {
         const black = (x + y) % 2 === 1;
         const color = black ? 'grey' : 'white';
         const piece = game[y][x];
+        let pieceName = '';
+        let pieceColor = '';
+        if (piece) {
+            pieceName = piece.name;
+            pieceColor = piece.color;
+        }
         return (
             <Square
                 x={x}
                 y={y}
                 color={color}
-                piece={piece}
+                // on this line, when passing in the 'Piece' object, react did not know to rerender because the reference
+                // to the object was not changing, so no rerender was triggered. but if we take out the Piece object and 
+                // replace it with a primative type, such as a string, the change of props will trigger the rerender
+                piece={pieceName}
+                piece_color={pieceColor}
                 onClick={() => handleSquareClick(x, y)}
             />
         );
