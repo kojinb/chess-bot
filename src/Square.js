@@ -16,7 +16,8 @@ const pieces = {
 };
 
 const Square = (props) => {
-  let name = props.piece ? props.piece_color + "_" + props.piece : '';
+  //let name = props.piece ? props.piece_color + "_" + props.piece : '';
+  let name = props.piece ? props.piece.color + "_" + props.piece.name : '';
 
   const style = {
     width: '50px',

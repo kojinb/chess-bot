@@ -108,11 +108,7 @@ const Board = () => {
                 x={x}
                 y={y}
                 color={color}
-                // on this line, when passing in the 'Piece' object, react did not know to rerender because the reference
-                // to the object was not changing, so no rerender was triggered. but if we take out the Piece object and 
-                // replace it with a primative type, such as a string, the change of props will trigger the rerender
-                piece={pieceName}
-                piece_color={pieceColor}
+                piece={piece}
                 onClick={() => handleSquareClick(x, y)}
             />
         );
