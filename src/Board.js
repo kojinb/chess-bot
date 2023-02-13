@@ -17,7 +17,7 @@ const Board = () => {
     const [selected, setSelected] = useState({ x: null, y: null });
     const [invalidMove, setInvalidMove] = useState(false);
     const [whitesMove, setWhitesMove] = useState(true);
-    const [lastMove, setLastMove] = useState({x: null, y: null});
+    const [lastMove, setLastMove] = useState({ x: null, y: null });
 
     const handleSquareClick = (x, y) => {
         if (selected.x === null) {
@@ -25,7 +25,7 @@ const Board = () => {
         } else {
             const gameCopy = JSON.parse(JSON.stringify(game));
             const piece = game[selected.y][selected.x];
-            let isValidMove = {validMove: false, enPassant: false};
+            let isValidMove = { validMove: false, enPassant: false };
             switch (piece.name) {
                 case 'pawn':
                     isValidMove = isValidPawnMove(game, selected, x, y, lastMove);
@@ -44,7 +44,7 @@ const Board = () => {
                 setGame(gameCopy);
                 setInvalidMove(false);
                 setWhitesMove(!whitesMove);
-                setLastMove({x, y});
+                setLastMove({ x, y });
             } else {
                 console.log('Invalid move');
                 setInvalidMove(true);
@@ -64,7 +64,7 @@ const Board = () => {
             // Check if the pawn is moving forward one square and there is no piece in that square
             if (y === selectedY - 1 && x === selectedX && !game[y][x]) {
                 return {
-                    validMove: true, 
+                    validMove: true,
                     enPassant: false
                 };
             }
@@ -83,9 +83,9 @@ const Board = () => {
                 };
             }
             // Check for en passant
-            else if (selectedY === previousY && x === previousX && Math.abs(selectedX - x) === 1 && game[previousY][previousX].color === 'black' && game[previousY][previousX].name === 'pawn'){
+            else if (selectedY === previousY && x === previousX && Math.abs(selectedX - x) === 1 && game[previousY][previousX].color === 'black' && game[previousY][previousX].name === 'pawn') {
                 return {
-                    validMove: true, 
+                    validMove: true,
                     enPassant: true
                 };
             }
@@ -114,9 +114,9 @@ const Board = () => {
                 };
             }
             // check for black's en passant capture
-            else if (selectedY === previousY && x === previousX && Math.abs(selectedX - x) === 1 && game[previousY][previousX].color === 'white' && game[previousY][previousX].name === 'pawn'){
+            else if (selectedY === previousY && x === previousX && Math.abs(selectedX - x) === 1 && game[previousY][previousX].color === 'white' && game[previousY][previousX].name === 'pawn') {
                 return {
-                    validMove: true, 
+                    validMove: true,
                     enPassant: true
                 };
             }
@@ -130,6 +130,37 @@ const Board = () => {
 
     const isValidRookMove = (game, selected, x, y) => {
         // code to verify if rook move is valid
+        const { x: selectedX, y: selectedY } = selected;
+        const piece = game[selectedY][selectedX];
+
+        // Check if move is along the row
+        if (selectedX === x) {
+            const minY = Math.min(selectedY, y);
+            const maxY = Math.max(selectedY, y);
+            for (let i = minY + 1; i < maxY; i++) {
+                if (game[i][x]) {
+                    return {validMove: false, enPassant: false};
+                }
+            }
+            if (!game[y][x] || game[y][x].color !== piece.color) {
+                return {validMove: true, enPassant: false};
+            }
+        }
+        // Check if move is along the column
+        else if (selectedY === y) {
+            const minX = Math.min(selectedX, x);
+            const maxX = Math.max(selectedX, x);
+            for (let i = minX + 1; i < maxX; i++) {
+                if (game[y][i]) {
+                    return {validMove: false, enPassant: false};
+                }
+            }
+            if (!game[y][x] || game[y][x].color !== piece.color) {
+                return {validMove: true, enPassant: false};
+            }
+        }
+
+        return {validMove: false, enPassant: false};
     };
 
     const renderSquare = (i) => {
