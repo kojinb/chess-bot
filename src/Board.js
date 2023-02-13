@@ -20,7 +20,7 @@ const Board = () => {
     const [lastMove, setLastMove] = useState({ x: null, y: null });
 
     const handleSquareClick = (x, y) => {
-        if (selected.x === null && game[y][x]) {
+        if (selected.x === null && game[y][x] && (whitesMove && game[y][x].color === 'white' || !whitesMove && game[y][x].color === 'black')) {
             setSelected({ x, y });
         } else {
             if (game[y][x] && game[y][x].color === game[selected.y][selected.x].color) {
@@ -38,6 +38,15 @@ const Board = () => {
                         break;
                     case 'bishop':
                         isValidMove = isValidBishopMove(game, selected, x, y);
+                        break;
+                    case 'knight':
+                        isValidMove = isValidKnightMove(game, selected, x, y);
+                        break;
+                    case 'queen':
+                        isValidMove = isValidQueenMove(game, selected, x, y);
+                        break;
+                    case 'king':
+                        isValidMove = isValidKingMove(game, selected, x, y);
                         break;
                     // cases for other pieces
                 }
@@ -176,7 +185,7 @@ const Board = () => {
         // Check if move is along a diagonal
         if (Math.abs(selectedX - x) === Math.abs(selectedY - y)) {
             let squareCheck = Math.abs(selectedX - x); // number of squares that need to be checked
-            let xIncrementer = -((selectedX - x) / squareCheck); 
+            let xIncrementer = -((selectedX - x) / squareCheck);
             let yIncrementer = -((selectedY - y) / squareCheck);
             let i = 1;
             // check that all squares up to target square are unoccupied
@@ -194,6 +203,45 @@ const Board = () => {
 
         return { validMove: false, enPassant: false };
     };
+
+    const isValidKnightMove = (game, selected, x, y) => {
+        const { x: selectedX, y: selectedY } = selected;
+        const color = game[selectedY][selectedX].color;
+        // Check if move is L-shaped
+        if ((Math.abs(selectedX - x) === 2 && Math.abs(selectedY - y) === 1) ||
+            (Math.abs(selectedX - x) === 1 && Math.abs(selectedY - y) === 2)) {
+            if (!game[y][x] || game[y][x].color !== color) {
+                return {validMove: true, enPassant: false};
+            }
+        }
+
+        return {validMove: false, enPassant: false};
+    };
+
+    const isValidQueenMove = (game, selected, x, y) => {
+        let validRookMove = isValidRookMove(game, selected, x, y);
+        let validBishopMove = isValidBishopMove(game, selected, x, y);
+
+        if (validRookMove.validMove || validBishopMove.validMove) {
+            return {validMove: true, enPassant: false};
+        }
+        return {validMove: false, enPassant: false};
+    };
+
+    const isValidKingMove = (game, selected, x, y) => {
+        const { x: selectedX, y: selectedY } = selected;
+        const color = game[selectedY][selectedX].color;
+      
+        // Check if move is one square in any direction
+        if (Math.abs(selectedX - x) <= 1 && Math.abs(selectedY - y) <= 1) {
+          if (!game[y][x] || game[y][x].color !== color) {
+            return {validMove: true, enPassant: false};
+          }
+        }
+      
+        return {validMove: true, enPassant: false};
+    };
+      
 
     const renderSquare = (i) => {
         const x = i % 8;
