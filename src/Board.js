@@ -23,33 +23,40 @@ const Board = () => {
         if (selected.x === null && game[y][x]) {
             setSelected({ x, y });
         } else {
-            const gameCopy = JSON.parse(JSON.stringify(game));
-            const piece = game[selected.y][selected.x];
-            let isValidMove = { validMove: false, enPassant: false };
-            switch (piece.name) {
-                case 'pawn':
-                    isValidMove = isValidPawnMove(game, selected, x, y, lastMove);
-                    break;
-                case 'rook':
-                    isValidMove = isValidRookMove(game, selected, x, y);
-                    break;
-                // cases for other pieces
-            }
-            if (isValidMove.validMove) {
-                if (isValidMove.enPassant) {
-                    gameCopy[lastMove.y][lastMove.x] = null;
-                }
-                gameCopy[selected.y][selected.x] = null;
-                gameCopy[y][x] = game[selected.y][selected.x];
-                setGame(gameCopy);
-                setInvalidMove(false);
-                setWhitesMove(!whitesMove);
-                setLastMove({ x, y });
+            if (game[y][x] && game[y][x].color === game[selected.y][selected.x].color) {
+                setSelected({ x, y });
             } else {
-                console.log('Invalid move');
-                setInvalidMove(true);
+                const gameCopy = JSON.parse(JSON.stringify(game));
+                const piece = game[selected.y][selected.x];
+                let isValidMove = { validMove: false, enPassant: false };
+                switch (piece.name) {
+                    case 'pawn':
+                        isValidMove = isValidPawnMove(game, selected, x, y, lastMove);
+                        break;
+                    case 'rook':
+                        isValidMove = isValidRookMove(game, selected, x, y);
+                        break;
+                    case 'bishop':
+                        isValidMove = isValidBishopMove(game, selected, x, y);
+                        break;
+                    // cases for other pieces
+                }
+                if (isValidMove.validMove) {
+                    if (isValidMove.enPassant) {
+                        gameCopy[lastMove.y][lastMove.x] = null;
+                    }
+                    gameCopy[selected.y][selected.x] = null;
+                    gameCopy[y][x] = game[selected.y][selected.x];
+                    setGame(gameCopy);
+                    setInvalidMove(false);
+                    setWhitesMove(!whitesMove);
+                    setLastMove({ x, y });
+                } else {
+                    console.log('Invalid move');
+                    setInvalidMove(true);
+                }
+                setSelected({ x: null, y: null });
             }
-            setSelected({ x: null, y: null });
         }
     };
 
@@ -139,11 +146,11 @@ const Board = () => {
             const maxY = Math.max(selectedY, y);
             for (let i = minY + 1; i < maxY; i++) {
                 if (game[i][x]) {
-                    return {validMove: false, enPassant: false};
+                    return { validMove: false, enPassant: false };
                 }
             }
             if (!game[y][x] || game[y][x].color !== piece.color) {
-                return {validMove: true, enPassant: false};
+                return { validMove: true, enPassant: false };
             }
         }
         // Check if move is along the column
@@ -152,15 +159,40 @@ const Board = () => {
             const maxX = Math.max(selectedX, x);
             for (let i = minX + 1; i < maxX; i++) {
                 if (game[y][i]) {
-                    return {validMove: false, enPassant: false};
+                    return { validMove: false, enPassant: false };
                 }
             }
             if (!game[y][x] || game[y][x].color !== piece.color) {
-                return {validMove: true, enPassant: false};
+                return { validMove: true, enPassant: false };
             }
         }
 
-        return {validMove: false, enPassant: false};
+        return { validMove: false, enPassant: false };
+    };
+
+    const isValidBishopMove = (game, selected, x, y) => {
+        const { x: selectedX, y: selectedY } = selected;
+        const color = game[selectedY][selectedX].color;
+        // Check if move is along a diagonal
+        if (Math.abs(selectedX - x) === Math.abs(selectedY - y)) {
+            let squareCheck = Math.abs(selectedX - x); // number of squares that need to be checked
+            let xIncrementer = -((selectedX - x) / squareCheck); 
+            let yIncrementer = -((selectedY - y) / squareCheck);
+            let i = 1;
+            // check that all squares up to target square are unoccupied
+            while (i < squareCheck) {
+                if (game[selectedY + yIncrementer * i][selectedX + xIncrementer * i]) {
+                    return { validMove: false, enPassant: false };
+                }
+                i++;
+            }
+            // check target square to ensure its unoccupied or occupied by opposing color
+            if (!game[y][x] || game[y][x].color !== color) {
+                return { validMove: true, enPassant: false };
+            }
+        }
+
+        return { validMove: false, enPassant: false };
     };
 
     const renderSquare = (i) => {
@@ -190,6 +222,7 @@ const Board = () => {
 
     return (
         <>
+            <div>turn: {whitesMove ? 'white' : 'black'}</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', height: '400px', width: '400px', border: '1px solid black' }}>
                 {squares}
             </div>
