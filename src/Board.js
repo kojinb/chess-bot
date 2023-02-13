@@ -20,7 +20,7 @@ const Board = () => {
     const [lastMove, setLastMove] = useState({ x: null, y: null });
 
     const handleSquareClick = (x, y) => {
-        if (selected.x === null) {
+        if (selected.x === null && game[y][x]) {
             setSelected({ x, y });
         } else {
             const gameCopy = JSON.parse(JSON.stringify(game));
