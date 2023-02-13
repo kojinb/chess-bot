@@ -11,7 +11,7 @@ const Board = () => {
         Array(8).fill(null),
         Array(8).fill(null),
         Array(8).fill(Piece('pawn', 'white')),
-        [Piece('rook', 'white'), Piece('knight', 'white'), Piece('bishop', 'white'), Piece('king', 'white'), Piece('queen', 'white'), Piece('bishop', 'white'), Piece('knight', 'white'), Piece('rook', 'white')],
+        [Piece('rook', 'white'), Piece('knight', 'white'), Piece('bishop', 'white'), Piece('queen', 'white'), Piece('king', 'white'), Piece('bishop', 'white'), Piece('knight', 'white'), Piece('rook', 'white')],
     ]);
 
     const [selected, setSelected] = useState({ x: null, y: null });
@@ -28,7 +28,7 @@ const Board = () => {
             } else {
                 const gameCopy = JSON.parse(JSON.stringify(game));
                 const piece = game[selected.y][selected.x];
-                let isValidMove = { validMove: false, enPassant: false };
+                let isValidMove = { validMove: false, enPassant: false, castle: false };
                 switch (piece.name) {
                     case 'pawn':
                         isValidMove = isValidPawnMove(game, selected, x, y, lastMove);
@@ -51,11 +51,33 @@ const Board = () => {
                     // cases for other pieces
                 }
                 if (isValidMove.validMove) {
-                    if (isValidMove.enPassant) {
+                    let castleMove = 0;
+                    if (isValidMove.enPassant) { // if en passant, null the pawn
                         gameCopy[lastMove.y][lastMove.x] = null;
                     }
+                    if (isValidMove.castle) { // if castle, move the rook from the original position to the king's side
+                        if (x < 4) {
+                            gameCopy[selected.y][0] = null;
+                            gameCopy[selected.y][3] = game[selected.y][0];
+                            gameCopy[selected.y][3].hasMoved = true;
+                            castleMove = -2;
+                        } else {
+                            gameCopy[selected.y][7] = null;
+                            gameCopy[selected.y][5] = game[selected.y][7];
+                            gameCopy[selected.y][5].hasMoved = true;
+                            castleMove = 2;
+                        }
+                    }
                     gameCopy[selected.y][selected.x] = null;
-                    gameCopy[y][x] = game[selected.y][selected.x];
+                    if (isValidMove.castle) {
+                        gameCopy[y][selected.x + castleMove] = game[selected.y][selected.x];
+                    } else {
+                        gameCopy[y][x] = game[selected.y][selected.x];
+                    }
+                    // if this piece has not yet moved this game, set hasMoved to true
+                    if (gameCopy[y][x] && !gameCopy[y][x].hasMoved) {
+                        gameCopy[y][x].hasMoved = true;
+                    }
                     setGame(gameCopy);
                     setInvalidMove(false);
                     setWhitesMove(!whitesMove);
@@ -81,28 +103,32 @@ const Board = () => {
             if (y === selectedY - 1 && x === selectedX && !game[y][x]) {
                 return {
                     validMove: true,
-                    enPassant: false
+                    enPassant: false,
+                    castle: false,
                 };
             }
             // Check if the pawn is capturing a black piece
             else if (y === selectedY - 1 && Math.abs(x - selectedX) === 1 && game[y][x] && game[y][x].color === 'black') {
                 return {
                     validMove: true,
-                    enPassant: false
+                    enPassant: false,
+                    castle: false
                 };
             }
             // Check for white pawn's initial two-square move
             else if (selectedY === 6 && y === 4 && x === selectedX && !game[5][x] && !game[4][x]) {
                 return {
                     validMove: true,
-                    enPassant: false
+                    enPassant: false,
+                    castle: false
                 };
             }
             // Check for en passant
             else if (selectedY === previousY && x === previousX && Math.abs(selectedX - x) === 1 && game[previousY][previousX].color === 'black' && game[previousY][previousX].name === 'pawn') {
                 return {
                     validMove: true,
-                    enPassant: true
+                    enPassant: true,
+                    castle: false
                 };
             }
         }
@@ -112,35 +138,40 @@ const Board = () => {
             if (y === selectedY + 1 && x === selectedX && !game[y][x]) {
                 return {
                     validMove: true,
-                    enPassant: false
+                    enPassant: false, 
+                    castle: false
                 };
             }
             // Check if the pawn is capturing a white piece
             else if (y === selectedY + 1 && Math.abs(x - selectedX) === 1 && game[y][x] && game[y][x].color === 'white') {
                 return {
                     validMove: true,
-                    enPassant: false
+                    enPassant: false,
+                    castle: false
                 };
             }
             // Check for black pawn's initial two-square move
             else if (selectedY === 1 && y === 3 && x === selectedX && !game[2][x] && !game[3][x]) {
                 return {
                     validMove: true,
-                    enPassant: false
+                    enPassant: false,
+                    castle: false
                 };
             }
             // check for black's en passant capture
             else if (selectedY === previousY && x === previousX && Math.abs(selectedX - x) === 1 && game[previousY][previousX].color === 'white' && game[previousY][previousX].name === 'pawn') {
                 return {
                     validMove: true,
-                    enPassant: true
+                    enPassant: true,
+                    castle: false
                 };
             }
         }
         // Return false if the move is not valid
         return {
             validMove: false,
-            enPassant: false
+            enPassant: false, 
+            castle: false
         };
     };
 
@@ -155,11 +186,11 @@ const Board = () => {
             const maxY = Math.max(selectedY, y);
             for (let i = minY + 1; i < maxY; i++) {
                 if (game[i][x]) {
-                    return { validMove: false, enPassant: false };
+                    return { validMove: false, enPassant: false, castle: false };
                 }
             }
             if (!game[y][x] || game[y][x].color !== piece.color) {
-                return { validMove: true, enPassant: false };
+                return { validMove: true, enPassant: false, castle: false };
             }
         }
         // Check if move is along the column
@@ -168,15 +199,15 @@ const Board = () => {
             const maxX = Math.max(selectedX, x);
             for (let i = minX + 1; i < maxX; i++) {
                 if (game[y][i]) {
-                    return { validMove: false, enPassant: false };
+                    return { validMove: false, enPassant: false, castle: false };
                 }
             }
             if (!game[y][x] || game[y][x].color !== piece.color) {
-                return { validMove: true, enPassant: false };
+                return { validMove: true, enPassant: false, castle: false };
             }
         }
 
-        return { validMove: false, enPassant: false };
+        return { validMove: false, enPassant: false, castle: false };
     };
 
     const isValidBishopMove = (game, selected, x, y) => {
@@ -191,17 +222,17 @@ const Board = () => {
             // check that all squares up to target square are unoccupied
             while (i < squareCheck) {
                 if (game[selectedY + yIncrementer * i][selectedX + xIncrementer * i]) {
-                    return { validMove: false, enPassant: false };
+                    return { validMove: false, enPassant: false, castle: false };
                 }
                 i++;
             }
             // check target square to ensure its unoccupied or occupied by opposing color
             if (!game[y][x] || game[y][x].color !== color) {
-                return { validMove: true, enPassant: false };
+                return { validMove: true, enPassant: false, castle: false };
             }
         }
 
-        return { validMove: false, enPassant: false };
+        return { validMove: false, enPassant: false, castle: false };
     };
 
     const isValidKnightMove = (game, selected, x, y) => {
@@ -211,11 +242,11 @@ const Board = () => {
         if ((Math.abs(selectedX - x) === 2 && Math.abs(selectedY - y) === 1) ||
             (Math.abs(selectedX - x) === 1 && Math.abs(selectedY - y) === 2)) {
             if (!game[y][x] || game[y][x].color !== color) {
-                return {validMove: true, enPassant: false};
+                return { validMove: true, enPassant: false, castle: false };
             }
         }
 
-        return {validMove: false, enPassant: false};
+        return { validMove: false, enPassant: false, castle: false };
     };
 
     const isValidQueenMove = (game, selected, x, y) => {
@@ -223,25 +254,52 @@ const Board = () => {
         let validBishopMove = isValidBishopMove(game, selected, x, y);
 
         if (validRookMove.validMove || validBishopMove.validMove) {
-            return {validMove: true, enPassant: false};
+            return { validMove: true, enPassant: false, castle: false };
         }
-        return {validMove: false, enPassant: false};
+        return { validMove: false, enPassant: false, castle: false };
     };
 
     const isValidKingMove = (game, selected, x, y) => {
         const { x: selectedX, y: selectedY } = selected;
         const color = game[selectedY][selectedX].color;
-      
+
+        // check if user is trying to castle by moving king 2 sqaures
+        if (Math.abs(selectedX - x) >= 2) {
+            // y values must be the same in order to castle
+            if (selectedY === y) {
+                // check that all squares inbetween the rook and the king are unoccupied
+                let squareCheck = 2;
+                let xIncrementer = 1;
+                let rookX = 7;
+                if (x - selectedX < 0) {
+                    squareCheck = 3;
+                    xIncrementer = -1;
+                    rookX = 0;
+                }
+                let i = 1;
+                while (i <= squareCheck) {
+                    if (game[selectedY][selectedX + xIncrementer * i]) {
+                        return { validMove: false, enPassant: false, castle: false };
+                    }
+                    i++;
+                }
+                // check to make sure that the king and the rook have not moved
+                if (!game[selectedY][rookX].hasMoved && !game[selectedY][selectedX].hasMoved) {
+                    return { validMove: true, enPassant: false, castle: true }
+                }
+            }
+        }
+
         // Check if move is one square in any direction
         if (Math.abs(selectedX - x) <= 1 && Math.abs(selectedY - y) <= 1) {
-          if (!game[y][x] || game[y][x].color !== color) {
-            return {validMove: true, enPassant: false};
-          }
+            if (!game[y][x] || game[y][x].color !== color) {
+                return { validMove: true, enPassant: false, castle: false };
+            }
         }
-      
-        return {validMove: true, enPassant: false};
+
+        return { validMove: false, enPassant: false, castle: false };
     };
-      
+
 
     const renderSquare = (i) => {
         const x = i % 8;
