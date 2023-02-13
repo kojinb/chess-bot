@@ -22,7 +22,7 @@ const Square = (props) => {
   const style = {
     width: '50px',
     height: '50px',
-    backgroundColor: props.color,
+    backgroundColor: props.selected ? '#90EE90' : props.color,
     backgroundImage: `url(${pieces[name]})`,
     backgroundSize: 'cover',
   };

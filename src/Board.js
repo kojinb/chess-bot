@@ -201,11 +201,9 @@ const Board = () => {
         const black = (x + y) % 2 === 1;
         const color = black ? 'grey' : 'white';
         const piece = game[y][x];
-        let pieceName = '';
-        let pieceColor = '';
-        if (piece) {
-            pieceName = piece.name;
-            pieceColor = piece.color;
+        let pieceSelected = false;
+        if (selected.x === x && selected.y === y) {
+            pieceSelected = true;
         }
         return (
             <Square
@@ -213,6 +211,7 @@ const Board = () => {
                 y={y}
                 color={color}
                 piece={piece}
+                selected={pieceSelected}
                 onClick={() => handleSquareClick(x, y)}
             />
         );
