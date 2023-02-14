@@ -68,10 +68,10 @@ const Board = () => {
     const updateGame = (gameCopy, x, y, kingPos) => {
         let isChecked = false;
         if (whitesMove) {
-            isChecked = findIsInCheck(gameCopy, blackKing.x, blackKing.y, 'black');
+            isChecked = findIsInCheck(gameCopy, blackKing);
             setWhiteKing({x: kingPos.x, y: kingPos.y});
         } else {
-            isChecked = findIsInCheck(gameCopy, whiteKing.x, whiteKing.y, 'white');
+            isChecked = findIsInCheck(gameCopy, whiteKing);
             setBlackKing({x: kingPos.x, y: kingPos.y});
         }
         setIsInCheck(isChecked);
@@ -141,7 +141,7 @@ const Board = () => {
             gameCopy[selected.y][selected.x] = null; // set original piece location to null
             
             // check if the new move created a discovered check
-            if (!findIsInCheck(gameCopy, response.kingPos.x, response.kingPos.y)) {
+            if (!findIsInCheck(gameCopy, response.kingPos)) {
                 response.gameCopy = gameCopy;
                 response.validMove = true;
             }
