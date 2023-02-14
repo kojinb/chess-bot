@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Square from './Square';
 import Piece from './Piece';
+import piece_icons from './files/piece_icons';
 
 const Board = () => {
     const [game, setGame] = useState([
@@ -21,6 +22,7 @@ const Board = () => {
     const [isInCheck, setIsInCheck] = useState(false);
     const [whiteKing, setWhiteKing] = useState({ x: 4, y: 7 });
     const [blackKing, setBlackKing] = useState({ x: 4, y: 0 });
+    const [deadPieces, setDeadPieces] = useState({ whitePieces: [], blackPieces: [] });
 
     const handleSquareClick = (x, y) => {
         if (selected.x === null && selectCorrectSquare(game[y][x])) {
@@ -58,7 +60,7 @@ const Board = () => {
         if (piece) {
             if (piece.color === 'white' && whitesMove) {
                 return true;
-            } else if (piece.color === 'black' && !whitesMove){
+            } else if (piece.color === 'black' && !whitesMove) {
                 return true;
             }
         }
@@ -69,10 +71,10 @@ const Board = () => {
         let isChecked = false;
         if (whitesMove) {
             isChecked = findIsInCheck(gameCopy, blackKing);
-            setWhiteKing({x: kingPos.x, y: kingPos.y});
+            setWhiteKing({ x: kingPos.x, y: kingPos.y });
         } else {
             isChecked = findIsInCheck(gameCopy, whiteKing);
-            setBlackKing({x: kingPos.x, y: kingPos.y});
+            setBlackKing({ x: kingPos.x, y: kingPos.y });
         }
         setIsInCheck(isChecked);
         setGame(gameCopy);
@@ -112,7 +114,9 @@ const Board = () => {
         }
 
         if (pieceMoveResponse.validMove) {
+            let pieceCaptured = null;
             if (pieceMoveResponse.enPassant) { // if en passant, null the pawn
+                pieceCaptured = gameCopy[lastMove.y][lastMove.x];
                 gameCopy[lastMove.y][lastMove.x] = null;
                 gameCopy[y][x] = game[selected.y][selected.x];
                 gameCopy[y][x].hasMoved = true;
@@ -135,15 +139,23 @@ const Board = () => {
                 response.kingPos.x = selected.x + castleMove;
                 response.kingPos.y = y;
             } else {
+                pieceCaptured = gameCopy[y][x];
                 gameCopy[y][x] = game[selected.y][selected.x]; // move the selected piece to the new position
                 gameCopy[y][x].hasMoved = true;
             }
             gameCopy[selected.y][selected.x] = null; // set original piece location to null
-            
+
             // check if the new move created a discovered check
             if (!findIsInCheck(gameCopy, response.kingPos)) {
                 response.gameCopy = gameCopy;
                 response.validMove = true;
+                if (pieceCaptured) {
+                    if (piece.color === 'white') {
+                        setDeadPieces({ whitePieces: deadPieces.whitePieces, blackPieces: deadPieces.blackPieces.concat(pieceCaptured) });
+                    } else {
+                        setDeadPieces({ whitePieces: deadPieces.whitePieces.concat(pieceCaptured), blackPieces: deadPieces.blackPieces });
+                    }
+                }
             }
         }
 
@@ -642,12 +654,40 @@ const Board = () => {
 
     const squares = Array(64).fill().map((_, i) => renderSquare(i));
 
+    const whitePieces = deadPieces.whitePieces.map((piece) => (
+        <div style={{
+            width: '30px',
+            height: '30px',
+            backgroundImage: `url(${piece_icons[piece.color + '_' + piece.name]})`,
+            backgroundSize: 'cover',
+        }} />
+    ));
+
+    const blackPieces = deadPieces.blackPieces.map((piece) => (
+        <div style={{
+            width: '30px',
+            height: '30px',
+            backgroundImage: `url(${piece_icons[piece.color + '_' + piece.name]})`,
+            backgroundSize: 'cover',
+        }} />
+    ));
+
     return (
         <>
             <div>turn: {whitesMove ? 'white' : 'black'} {isInCheck && ' !!! PLAYER IS IN CHECK !!!'}</div>
+            {whitePieces.length > 0 &&
+                <div style={{ display: 'flex', flexWrap: 'wrap', height: '30px', width: '400px' }}>
+                    {whitePieces}
+                </div>
+            }
             <div style={{ display: 'flex', flexWrap: 'wrap', height: '400px', width: '400px', border: '1px solid black' }}>
                 {squares}
             </div>
+            {blackPieces.length > 0 &&
+                <div style={{ display: 'flex', flexWrap: 'wrap', height: '30px', width: '400px' }}>
+                    {blackPieces}
+                </div>
+            }
             <div>selected x: {selected.x}, selected y: {selected.y}</div>
             <div>last move: {lastMove.x}, {lastMove.y}</div>
             {invalidMove && <div>Invalid Move!</div>}
