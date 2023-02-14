@@ -18,71 +18,34 @@ const Board = () => {
     const [invalidMove, setInvalidMove] = useState(false);
     const [whitesMove, setWhitesMove] = useState(true);
     const [lastMove, setLastMove] = useState({ x: null, y: null });
+    const [isInCheck, setIsInCheck] = useState(false);
+    const [whiteKing, setWhiteKing] = useState({ x: 4, y: 7 });
+    const [blackKing, setBlackKing] = useState({ x: 4, y: 0 });
 
     const handleSquareClick = (x, y) => {
         if (selected.x === null && game[y][x] && (whitesMove && game[y][x].color === 'white' || !whitesMove && game[y][x].color === 'black')) {
             setSelected({ x, y });
-        } else {
+        } else if (selected.x !== null) {
             if (game[y][x] && game[y][x].color === game[selected.y][selected.x].color) {
                 setSelected({ x, y });
             } else {
                 const gameCopy = JSON.parse(JSON.stringify(game));
-                const piece = game[selected.y][selected.x];
-                let isValidMove = { validMove: false, enPassant: false, castle: false };
-                switch (piece.name) {
-                    case 'pawn':
-                        isValidMove = isValidPawnMove(game, selected, x, y, lastMove);
-                        break;
-                    case 'rook':
-                        isValidMove = isValidRookMove(game, selected, x, y);
-                        break;
-                    case 'bishop':
-                        isValidMove = isValidBishopMove(game, selected, x, y);
-                        break;
-                    case 'knight':
-                        isValidMove = isValidKnightMove(game, selected, x, y);
-                        break;
-                    case 'queen':
-                        isValidMove = isValidQueenMove(game, selected, x, y);
-                        break;
-                    case 'king':
-                        isValidMove = isValidKingMove(game, selected, x, y);
-                        break;
-                    // cases for other pieces
-                }
-                if (isValidMove.validMove) {
-                    let castleMove = 0;
-                    if (isValidMove.enPassant) { // if en passant, null the pawn
-                        gameCopy[lastMove.y][lastMove.x] = null;
-                    }
-                    if (isValidMove.castle) { // if castle, move the rook from the original position to the king's side
-                        if (x < 4) {
-                            gameCopy[selected.y][0] = null;
-                            gameCopy[selected.y][3] = game[selected.y][0];
-                            gameCopy[selected.y][3].hasMoved = true;
-                            castleMove = -2;
+                const kingPos = whitesMove ? whiteKing : blackKing;
+
+                let isValidMove = checkIsValidMove(gameCopy, x, y, kingPos);
+
+                if (isValidMove.validMove) { // if it is a valid move
+                    if (isInCheck) { // if it is in check
+                        // check if new position is still in check
+                        if (findIsInCheck(isValidMove.gameCopy, isValidMove.kingPos.x, isValidMove.kingPos.y)) {
+                            console.log('Invalid move');
                         } else {
-                            gameCopy[selected.y][7] = null;
-                            gameCopy[selected.y][5] = game[selected.y][7];
-                            gameCopy[selected.y][5].hasMoved = true;
-                            castleMove = 2;
+                            updateGame(isValidMove.gameCopy, x, y, isValidMove.kingPos);
                         }
+                    } else { // if it isnt in check
+                        updateGame(isValidMove.gameCopy, x, y, isValidMove.kingPos);
                     }
-                    gameCopy[selected.y][selected.x] = null;
-                    if (isValidMove.castle) {
-                        gameCopy[y][selected.x + castleMove] = game[selected.y][selected.x];
-                    } else {
-                        gameCopy[y][x] = game[selected.y][selected.x];
-                    }
-                    // if this piece has not yet moved this game, set hasMoved to true
-                    if (gameCopy[y][x] && !gameCopy[y][x].hasMoved) {
-                        gameCopy[y][x].hasMoved = true;
-                    }
-                    setGame(gameCopy);
-                    setInvalidMove(false);
-                    setWhitesMove(!whitesMove);
-                    setLastMove({ x, y });
-                } else {
+                } else { // if its not a valid move
                     console.log('Invalid move');
                     setInvalidMove(true);
                 }
@@ -90,6 +53,91 @@ const Board = () => {
             }
         }
     };
+
+    const updateGame = (gameCopy, x, y, kingPos) => {
+        let isChecked = false;
+        if (whitesMove) {
+            isChecked = findIsInCheck(gameCopy, blackKing.x, blackKing.y, 'black');
+            setWhiteKing({x: kingPos.x, y: kingPos.y});
+        } else {
+            isChecked = findIsInCheck(gameCopy, whiteKing.x, whiteKing.y, 'white');
+            setBlackKing({x: kingPos.x, y: kingPos.y});
+        }
+        setIsInCheck(isChecked);
+        setGame(gameCopy);
+        setInvalidMove(false);
+        setWhitesMove(!whitesMove);
+        setLastMove({ x, y });
+    }
+
+    const checkIsValidMove = (gameCopy, x, y, kingPos) => {
+        const piece = gameCopy[selected.y][selected.x];
+        let pieceMoveResponse = { validMove: false, enPassant: false, castle: false }
+        let response = { validMove: false, gameCopy: gameCopy, kingPos: kingPos };
+
+        switch (piece.name) {
+            case 'pawn':
+                pieceMoveResponse = isValidPawnMove(gameCopy, selected, x, y, lastMove);
+                break;
+            case 'rook':
+                pieceMoveResponse = isValidRookMove(gameCopy, selected, x, y);
+                break;
+            case 'bishop':
+                pieceMoveResponse = isValidBishopMove(gameCopy, selected, x, y);
+                break;
+            case 'knight':
+                pieceMoveResponse = isValidKnightMove(gameCopy, selected, x, y);
+                break;
+            case 'queen':
+                pieceMoveResponse = isValidQueenMove(gameCopy, selected, x, y);
+                break;
+            case 'king':
+                pieceMoveResponse = isValidKingMove(gameCopy, selected, x, y);
+                if (pieceMoveResponse.validMove) { // if the king was moved, update kingPos
+                    response.kingPos.x = x;
+                    response.kingPos.y = y;
+                }
+                break;
+        }
+
+        if (pieceMoveResponse.validMove) {
+            if (pieceMoveResponse.enPassant) { // if en passant, null the pawn
+                gameCopy[lastMove.y][lastMove.x] = null;
+                gameCopy[y][x] = game[selected.y][selected.x];
+                gameCopy[y][x].hasMoved = true;
+            }
+            else if (pieceMoveResponse.castle) { // if castle, move the rook from the original position to the king's side
+                let castleMove = 0;
+                if (x < 4) {
+                    gameCopy[selected.y][0] = null;
+                    gameCopy[selected.y][3] = game[selected.y][0];
+                    gameCopy[selected.y][3].hasMoved = true;
+                    castleMove = -2;
+                } else {
+                    gameCopy[selected.y][7] = null;
+                    gameCopy[selected.y][5] = game[selected.y][7];
+                    gameCopy[selected.y][5].hasMoved = true;
+                    castleMove = 2;
+                }
+                gameCopy[y][selected.x + castleMove] = game[selected.y][selected.x]; // move the king
+                gameCopy[y][selected.x + castleMove].hasMoved = true;
+                response.kingPos.x = selected.x + castleMove;
+                response.kingPos.y = y;
+            } else {
+                gameCopy[y][x] = game[selected.y][selected.x]; // move the selected piece to the new position
+                gameCopy[y][x].hasMoved = true;
+            }
+            gameCopy[selected.y][selected.x] = null; // set original piece location to null
+            
+            // check if the new move created a discovered check
+            if (!findIsInCheck(gameCopy, response.kingPos.x, response.kingPos.y)) {
+                response.gameCopy = gameCopy;
+                response.validMove = true;
+            }
+        }
+
+        return response;
+    }
 
     const isValidPawnMove = (game, selected, x, y, previous_move) => {
         // Destructure the x and y values of the selected square from the `selected` object
@@ -138,7 +186,7 @@ const Board = () => {
             if (y === selectedY + 1 && x === selectedX && !game[y][x]) {
                 return {
                     validMove: true,
-                    enPassant: false, 
+                    enPassant: false,
                     castle: false
                 };
             }
@@ -170,7 +218,7 @@ const Board = () => {
         // Return false if the move is not valid
         return {
             validMove: false,
-            enPassant: false, 
+            enPassant: false,
             castle: false
         };
     };
@@ -263,29 +311,32 @@ const Board = () => {
         const { x: selectedX, y: selectedY } = selected;
         const color = game[selectedY][selectedX].color;
 
-        // check if user is trying to castle by moving king 2 sqaures
-        if (Math.abs(selectedX - x) >= 2) {
-            // y values must be the same in order to castle
-            if (selectedY === y) {
-                // check that all squares inbetween the rook and the king are unoccupied
-                let squareCheck = 2;
-                let xIncrementer = 1;
-                let rookX = 7;
-                if (x - selectedX < 0) {
-                    squareCheck = 3;
-                    xIncrementer = -1;
-                    rookX = 0;
-                }
-                let i = 1;
-                while (i <= squareCheck) {
-                    if (game[selectedY][selectedX + xIncrementer * i]) {
-                        return { validMove: false, enPassant: false, castle: false };
+        // verify that the player is not in check
+        if (!isInCheck) {
+            // check if user is trying to castle by moving king 2 sqaures
+            if (Math.abs(selectedX - x) >= 2) {
+                // y values must be the same in order to castle
+                if (selectedY === y) {
+                    // check that all squares inbetween the rook and the king are unoccupied
+                    let squareCheck = 2;
+                    let xIncrementer = 1;
+                    let rookX = 7;
+                    if (x - selectedX < 0) {
+                        squareCheck = 3;
+                        xIncrementer = -1;
+                        rookX = 0;
                     }
-                    i++;
-                }
-                // check to make sure that the king and the rook have not moved
-                if (!game[selectedY][rookX].hasMoved && !game[selectedY][selectedX].hasMoved) {
-                    return { validMove: true, enPassant: false, castle: true }
+                    let i = 1;
+                    while (i <= squareCheck) {
+                        if (game[selectedY][selectedX + xIncrementer * i]) {
+                            return { validMove: false, enPassant: false, castle: false };
+                        }
+                        i++;
+                    }
+                    // check to make sure that the king and the rook have not moved
+                    if (!game[selectedY][rookX].hasMoved && !game[selectedY][selectedX].hasMoved) {
+                        return { validMove: true, enPassant: false, castle: true }
+                    }
                 }
             }
         }
@@ -300,6 +351,259 @@ const Board = () => {
         return { validMove: false, enPassant: false, castle: false };
     };
 
+    const findIsInCheck = (gameCopy, targetX, targetY) => {
+        const king = gameCopy[targetY][targetX];
+        const playerColor = king.color;
+
+        // check verticals
+        let yCoord = targetY - 1;
+        while (yCoord >= 0) {
+            // empty square
+            if (!gameCopy[yCoord][targetX]) {
+                yCoord--;
+            } else {
+                const piece = gameCopy[yCoord][targetX];
+                if (piece.name === 'rook' && piece.color !== playerColor || piece.name === 'queen' && piece.color !== playerColor) {
+                    return true;
+                }
+                break;
+            }
+        }
+        yCoord = targetY + 1;
+        while (yCoord <= 7) {
+            // empty square
+            if (!gameCopy[yCoord][targetX]) {
+                yCoord++;
+            } else {
+                const piece = gameCopy[yCoord][targetX];
+                if (piece.name === 'rook' && piece.color !== playerColor || piece.name === 'queen' && piece.color !== playerColor) {
+                    return true;
+                }
+                break;
+            }
+        }
+        // check horizontals
+        let xCoord = targetX - 1;
+        while (xCoord >= 0) {
+            // empty square
+            if (!gameCopy[targetY][xCoord]) {
+                xCoord--;
+            } else {
+                const piece = gameCopy[targetY][xCoord];
+                if (piece.name === 'rook' && piece.color !== playerColor || piece.name === 'queen' && piece.color !== playerColor) {
+                    return true;
+                }
+                break;
+            }
+        }
+        xCoord = targetX + 1;
+        while (xCoord <= 7) {
+            // empty square
+            if (!gameCopy[targetY][xCoord]) {
+                xCoord++;
+            } else {
+                const piece = gameCopy[targetY][xCoord];
+                if (piece.name === 'rook' && piece.color !== playerColor || piece.name === 'queen' && piece.color !== playerColor) {
+                    return true;
+                }
+                break;
+            }
+        }
+
+        // check diagonals
+        // bottom right
+        xCoord = targetX + 1;
+        yCoord = targetY + 1;
+        while (xCoord <= 7 && yCoord <= 7) {
+            // empty square
+            if (!gameCopy[yCoord][xCoord]) {
+                xCoord++;
+                yCoord++;
+            } else {
+                const piece = gameCopy[yCoord][xCoord];
+                if (piece.name === 'bishop' && piece.color !== playerColor || piece.name === 'queen' && piece.color !== playerColor) {
+                    return true;
+                }
+                break;
+            }
+        }
+        // bottom left
+        xCoord = targetX - 1;
+        yCoord = targetY + 1;
+        while (xCoord >= 0 && yCoord <= 7) {
+            // empty square
+            if (!gameCopy[yCoord][xCoord]) {
+                xCoord--;
+                yCoord++;
+            } else {
+                const piece = gameCopy[yCoord][xCoord];
+                if (piece.name === 'bishop' && piece.color !== playerColor || piece.name === 'queen' && piece.color !== playerColor) {
+                    return true;
+                }
+                break;
+            }
+        }
+        // top left
+        xCoord = targetX - 1;
+        yCoord = targetY - 1;
+        while (xCoord >= 0 && yCoord >= 0) {
+            // empty square
+            if (!gameCopy[yCoord][xCoord]) {
+                xCoord--;
+                yCoord--;
+            } else {
+                const piece = gameCopy[yCoord][xCoord];
+                if (piece.name === 'bishop' && piece.color !== playerColor || piece.name === 'queen' && piece.color !== playerColor) {
+                    return true;
+                }
+                break;
+            }
+        }
+        // top right
+        xCoord = targetX + 1;
+        yCoord = targetY - 1;
+        while (xCoord <= 7 && yCoord >= 0) {
+            // empty square
+            if (!gameCopy[yCoord][xCoord]) {
+                xCoord++;
+                yCoord--;
+            } else {
+                const piece = gameCopy[yCoord][xCoord];
+                if (piece.name === 'bishop' && piece.color !== playerColor || piece.name === 'queen' && piece.color !== playerColor) {
+                    return true;
+                }
+                break;
+            }
+        }
+
+        // check knight positions
+        // outer left positions
+        xCoord = targetX - 2;
+        if (xCoord >= 0) {
+            if (targetY - 1 >= 0) {
+                if (gameCopy[targetY - 1][xCoord] && gameCopy[targetY - 1][xCoord].name === 'knight' && gameCopy[targetY - 1][xCoord].color !== playerColor) {
+                    return true;
+                }
+            }
+            if (targetY + 1 <= 7) {
+                if (gameCopy[targetY + 1][xCoord] && gameCopy[targetY + 1][xCoord].name === 'knight' && gameCopy[targetY + 1][xCoord].color !== playerColor) {
+                    return true;
+                }
+            }
+        }
+        // outer right positions
+        xCoord = targetX + 2;
+        if (xCoord <= 7) {
+            if (targetY - 1 >= 0) {
+                if (gameCopy[targetY - 1][xCoord] && gameCopy[targetY - 1][xCoord].name === 'knight' && gameCopy[targetY - 1][xCoord].color !== playerColor) {
+                    return true;
+                }
+            }
+            if (targetY + 1 <= 7) {
+                if (gameCopy[targetY + 1][xCoord] && gameCopy[targetY + 1][xCoord].name === 'knight' && gameCopy[targetY + 1][xCoord].color !== playerColor) {
+                    return true;
+                }
+            }
+        }
+        // inner left positions
+        xCoord = targetX - 1;
+        if (xCoord >= 0) {
+            if (targetY - 2 >= 0) {
+                if (gameCopy[targetY - 2][xCoord] && gameCopy[targetY - 2][xCoord].name === 'knight' && gameCopy[targetY - 2][xCoord].color !== playerColor) {
+                    return true;
+                }
+            }
+            if (targetY + 2 <= 7) {
+                if (gameCopy[targetY + 2][xCoord] && gameCopy[targetY + 2][xCoord].name === 'knight' && gameCopy[targetY + 2][xCoord].color !== playerColor) {
+                    return true;
+                }
+            }
+        }
+        // inner right positions
+        xCoord = targetX + 1;
+        if (xCoord >= 0) {
+            if (targetY - 2 >= 0) {
+                if (gameCopy[targetY - 2][xCoord] && gameCopy[targetY - 2][xCoord].name === 'knight' && gameCopy[targetY - 2][xCoord].color !== playerColor) {
+                    return true;
+                }
+            }
+            if (targetY + 2 <= 7) {
+                if (gameCopy[targetY + 2][xCoord] && gameCopy[targetY + 2][xCoord].name === 'knight' && gameCopy[targetY + 2][xCoord].color !== playerColor) {
+                    return true;
+                }
+            }
+        }
+
+        // check for enemy king
+        // check top row
+        yCoord = targetY - 1;
+        if (yCoord >= 0) {
+            if (targetX - 1 >= 0) {
+                if (gameCopy[yCoord][targetX - 1] && gameCopy[yCoord][targetX - 1].name === 'king' && gameCopy[yCoord][targetX - 1].color !== playerColor) {
+                    return true;
+                }
+            }
+            if (gameCopy[yCoord][targetX] && gameCopy[yCoord][targetX].name === 'king' && gameCopy[yCoord][targetX].color !== playerColor) {
+                return true;
+            }
+            if (targetX + 1 <= 7) {
+                if (gameCopy[yCoord][targetX + 1] && gameCopy[yCoord][targetX + 1].name === 'king' && gameCopy[yCoord][targetX + 1].color !== playerColor) {
+                    return true;
+                }
+            }
+        }
+        // check middle row
+        yCoord = targetY;
+        if (targetX - 1 >= 0) {
+            if (gameCopy[yCoord][targetX - 1] && gameCopy[yCoord][targetX - 1].name === 'king' && gameCopy[yCoord][targetX - 1].color !== playerColor) {
+                return true;
+            }
+        }
+        if (gameCopy[yCoord][targetX] && gameCopy[yCoord][targetX].name === 'king' && gameCopy[yCoord][targetX].color !== playerColor) {
+            return true;
+        }
+        if (targetX + 1 <= 7) {
+            if (gameCopy[yCoord][targetX + 1] && gameCopy[yCoord][targetX + 1].name === 'king' && gameCopy[yCoord][targetX + 1].color !== playerColor) {
+                return true;
+            }
+        }
+        // check bottom row
+        yCoord = targetY + 1;
+        if (yCoord <= 7) {
+            if (targetX - 1 >= 0) {
+                if (gameCopy[yCoord][targetX - 1] && gameCopy[yCoord][targetX - 1].name === 'king' && gameCopy[yCoord][targetX - 1].color !== playerColor) {
+                    return true;
+                }
+            }
+            if (gameCopy[yCoord][targetX] && gameCopy[yCoord][targetX].name === 'king' && gameCopy[yCoord][targetX].color !== playerColor) {
+                return true;
+            }
+            if (targetX + 1 <= 7) {
+                if (gameCopy[yCoord][targetX + 1] && gameCopy[yCoord][targetX + 1].name === 'king' && gameCopy[yCoord][targetX + 1].color !== playerColor) {
+                    return true;
+                }
+            }
+        }
+
+        // check for pawns
+        if (playerColor === 'white') {
+            if (gameCopy[targetY - 1][targetX - 1] && gameCopy[targetY - 1][targetX - 1].name === 'pawn' && gameCopy[targetY - 1][targetX - 1].color !== playerColor) {
+                return true;
+            }
+            if (gameCopy[targetY - 1][targetX + 1] && gameCopy[targetY - 1][targetX + 1].name === 'pawn' && gameCopy[targetY - 1][targetX + 1].color !== playerColor) {
+                return true;
+            }
+        } else {
+            if (gameCopy[targetY + 1][targetX - 1] && gameCopy[targetY + 1][targetX - 1].name === 'pawn' && gameCopy[targetY + 1][targetX - 1].color !== playerColor) {
+                return true;
+            }
+            if (gameCopy[targetY + 1][targetX + 1] && gameCopy[targetY + 1][targetX + 1].name === 'pawn' && gameCopy[targetY + 1][targetX + 1].color !== playerColor) {
+                return true;
+            }
+        }
+
+        return false;
+    };
 
     const renderSquare = (i) => {
         const x = i % 8;
@@ -327,7 +631,7 @@ const Board = () => {
 
     return (
         <>
-            <div>turn: {whitesMove ? 'white' : 'black'}</div>
+            <div>turn: {whitesMove ? 'white' : 'black'} {isInCheck && ' !!! PLAYER IS IN CHECK !!!'}</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', height: '400px', width: '400px', border: '1px solid black' }}>
                 {squares}
             </div>
