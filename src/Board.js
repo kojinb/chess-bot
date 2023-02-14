@@ -23,7 +23,7 @@ const Board = () => {
     const [blackKing, setBlackKing] = useState({ x: 4, y: 0 });
 
     const handleSquareClick = (x, y) => {
-        if (selected.x === null && game[y][x] && (whitesMove && game[y][x].color === 'white' || !whitesMove && game[y][x].color === 'black')) {
+        if (selected.x === null && selectCorrectSquare(game[y][x])) {
             setSelected({ x, y });
         } else if (selected.x !== null) {
             if (game[y][x] && game[y][x].color === game[selected.y][selected.x].color) {
@@ -37,7 +37,7 @@ const Board = () => {
                 if (isValidMove.validMove) { // if it is a valid move
                     if (isInCheck) { // if it is in check
                         // check if new position is still in check
-                        if (findIsInCheck(isValidMove.gameCopy, isValidMove.kingPos.x, isValidMove.kingPos.y)) {
+                        if (findIsInCheck(isValidMove.gameCopy, isValidMove.kingPos)) {
                             console.log('Invalid move');
                         } else {
                             updateGame(isValidMove.gameCopy, x, y, isValidMove.kingPos);
@@ -53,6 +53,17 @@ const Board = () => {
             }
         }
     };
+
+    const selectCorrectSquare = (piece) => {
+        if (piece) {
+            if (piece.color === 'white' && whitesMove) {
+                return true;
+            } else if (piece.color === 'black' && !whitesMove){
+                return true;
+            }
+        }
+        return false
+    }
 
     const updateGame = (gameCopy, x, y, kingPos) => {
         let isChecked = false;
@@ -351,7 +362,9 @@ const Board = () => {
         return { validMove: false, enPassant: false, castle: false };
     };
 
-    const findIsInCheck = (gameCopy, targetX, targetY) => {
+    const findIsInCheck = (gameCopy, kingPos) => {
+        const targetX = kingPos.x;
+        const targetY = kingPos.y;
         const king = gameCopy[targetY][targetX];
         const playerColor = king.color;
 
