@@ -1,18 +1,29 @@
-import React from "react";
+import white_pawn from '../images/white_pawn.png';
+import black_pawn from '../images/black_pawn.png';
+import white_rook from '../images/white_rook.png';
+import black_rook from '../images/black_rook.png';
+import white_knight from '../images/white_knight.png';
+import black_knight from '../images/black_knight.png';
+import white_bishop from '../images/white_bishop.png';
+import black_bishop from '../images/black_bishop.png';
+import white_queen from '../images/white_queen.png';
+import black_queen from '../images/black_queen.png';
+import white_king from '../images/white_king.png';
+import black_king from '../images/black_king.png';
 
 const piece_icons = {
-    white_pawn: 'https://upload.wikimedia.org/wikipedia/commons/0/04/Chess_plt60.png',
-    black_pawn: 'https://upload.wikimedia.org/wikipedia/commons/c/cd/Chess_pdt60.png',
-    white_rook: 'https://upload.wikimedia.org/wikipedia/commons/5/5c/Chess_rlt60.png',
-    black_rook: 'https://upload.wikimedia.org/wikipedia/commons/a/a0/Chess_rdt60.png',
-    white_knight: 'https://upload.wikimedia.org/wikipedia/commons/2/28/Chess_nlt60.png',
-    black_knight: 'https://upload.wikimedia.org/wikipedia/commons/f/f1/Chess_ndt60.png',
-    white_bishop: 'https://upload.wikimedia.org/wikipedia/commons/9/9b/Chess_blt60.png',
-    black_bishop: 'https://upload.wikimedia.org/wikipedia/commons/8/81/Chess_bdt60.png',
-    white_queen: 'https://upload.wikimedia.org/wikipedia/commons/4/49/Chess_qlt60.png',
-    black_queen: 'https://upload.wikimedia.org/wikipedia/commons/a/af/Chess_qdt60.png',
-    white_king: 'https://upload.wikimedia.org/wikipedia/commons/3/3b/Chess_klt60.png',
-    black_king: 'https://upload.wikimedia.org/wikipedia/commons/e/e3/Chess_kdt60.png'
+    white_pawn: white_pawn,
+    black_pawn: black_pawn,
+    white_rook: white_rook,
+    black_rook: black_rook,
+    white_knight: white_knight,
+    black_knight: black_knight,
+    white_bishop: white_bishop,
+    black_bishop: black_bishop,
+    white_queen: white_queen,
+    black_queen: black_queen,
+    white_king: white_king,
+    black_king: black_king
   };
 
   export default piece_icons;

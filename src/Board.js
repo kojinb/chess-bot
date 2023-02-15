@@ -68,15 +68,16 @@ const Board = () => {
     }
 
     const updateGame = (gameCopy, x, y, kingPos) => {
-        let isChecked = false;
+        let checkingPiece = null;
         if (whitesMove) {
-            isChecked = findIsInCheck(gameCopy, blackKing);
+            checkingPiece = findIsInCheck(gameCopy, blackKing);
             setWhiteKing({ x: kingPos.x, y: kingPos.y });
         } else {
-            isChecked = findIsInCheck(gameCopy, whiteKing);
+            checkingPiece = findIsInCheck(gameCopy, whiteKing);
             setBlackKing({ x: kingPos.x, y: kingPos.y });
         }
-        setIsInCheck(isChecked);
+        setIsInCheck(checkingPiece !== null);
+
         setGame(gameCopy);
         setInvalidMove(false);
         setWhitesMove(!whitesMove);
@@ -389,7 +390,7 @@ const Board = () => {
             } else {
                 const piece = gameCopy[yCoord][targetX];
                 if (piece.name === 'rook' && piece.color !== playerColor || piece.name === 'queen' && piece.color !== playerColor) {
-                    return true;
+                    return piece;
                 }
                 break;
             }
@@ -402,7 +403,7 @@ const Board = () => {
             } else {
                 const piece = gameCopy[yCoord][targetX];
                 if (piece.name === 'rook' && piece.color !== playerColor || piece.name === 'queen' && piece.color !== playerColor) {
-                    return true;
+                    return piece;
                 }
                 break;
             }
@@ -416,7 +417,7 @@ const Board = () => {
             } else {
                 const piece = gameCopy[targetY][xCoord];
                 if (piece.name === 'rook' && piece.color !== playerColor || piece.name === 'queen' && piece.color !== playerColor) {
-                    return true;
+                    return piece;
                 }
                 break;
             }
@@ -429,7 +430,7 @@ const Board = () => {
             } else {
                 const piece = gameCopy[targetY][xCoord];
                 if (piece.name === 'rook' && piece.color !== playerColor || piece.name === 'queen' && piece.color !== playerColor) {
-                    return true;
+                    return piece;
                 }
                 break;
             }
@@ -447,7 +448,7 @@ const Board = () => {
             } else {
                 const piece = gameCopy[yCoord][xCoord];
                 if (piece.name === 'bishop' && piece.color !== playerColor || piece.name === 'queen' && piece.color !== playerColor) {
-                    return true;
+                    return piece;
                 }
                 break;
             }
@@ -463,7 +464,7 @@ const Board = () => {
             } else {
                 const piece = gameCopy[yCoord][xCoord];
                 if (piece.name === 'bishop' && piece.color !== playerColor || piece.name === 'queen' && piece.color !== playerColor) {
-                    return true;
+                    return piece;
                 }
                 break;
             }
@@ -479,7 +480,7 @@ const Board = () => {
             } else {
                 const piece = gameCopy[yCoord][xCoord];
                 if (piece.name === 'bishop' && piece.color !== playerColor || piece.name === 'queen' && piece.color !== playerColor) {
-                    return true;
+                    return piece;
                 }
                 break;
             }
@@ -495,7 +496,7 @@ const Board = () => {
             } else {
                 const piece = gameCopy[yCoord][xCoord];
                 if (piece.name === 'bishop' && piece.color !== playerColor || piece.name === 'queen' && piece.color !== playerColor) {
-                    return true;
+                    return piece;
                 }
                 break;
             }
@@ -506,13 +507,15 @@ const Board = () => {
         xCoord = targetX - 2;
         if (xCoord >= 0) {
             if (targetY - 1 >= 0) {
-                if (gameCopy[targetY - 1][xCoord] && gameCopy[targetY - 1][xCoord].name === 'knight' && gameCopy[targetY - 1][xCoord].color !== playerColor) {
-                    return true;
+                const piece = gameCopy[targetY - 1][xCoord];
+                if (piece && piece.name === 'knight' && piece.color !== playerColor) {
+                    return piece;
                 }
             }
             if (targetY + 1 <= 7) {
-                if (gameCopy[targetY + 1][xCoord] && gameCopy[targetY + 1][xCoord].name === 'knight' && gameCopy[targetY + 1][xCoord].color !== playerColor) {
-                    return true;
+                const piece = gameCopy[targetY + 1][xCoord];
+                if (piece && piece.name === 'knight' && piece.color !== playerColor) {
+                    return piece;
                 }
             }
         }
@@ -520,13 +523,15 @@ const Board = () => {
         xCoord = targetX + 2;
         if (xCoord <= 7) {
             if (targetY - 1 >= 0) {
-                if (gameCopy[targetY - 1][xCoord] && gameCopy[targetY - 1][xCoord].name === 'knight' && gameCopy[targetY - 1][xCoord].color !== playerColor) {
-                    return true;
+                const piece = gameCopy[targetY - 1][xCoord];
+                if (piece && piece.name === 'knight' && piece.color !== playerColor) {
+                    return piece;
                 }
             }
             if (targetY + 1 <= 7) {
-                if (gameCopy[targetY + 1][xCoord] && gameCopy[targetY + 1][xCoord].name === 'knight' && gameCopy[targetY + 1][xCoord].color !== playerColor) {
-                    return true;
+                const piece = gameCopy[targetY + 1][xCoord];
+                if (piece && piece.name === 'knight' && piece.color !== playerColor) {
+                    return piece;
                 }
             }
         }
@@ -534,13 +539,15 @@ const Board = () => {
         xCoord = targetX - 1;
         if (xCoord >= 0) {
             if (targetY - 2 >= 0) {
-                if (gameCopy[targetY - 2][xCoord] && gameCopy[targetY - 2][xCoord].name === 'knight' && gameCopy[targetY - 2][xCoord].color !== playerColor) {
-                    return true;
+                const piece = gameCopy[targetY - 2][xCoord];
+                if (piece && piece.name === 'knight' && piece.color !== playerColor) {
+                    return piece;
                 }
             }
             if (targetY + 2 <= 7) {
-                if (gameCopy[targetY + 2][xCoord] && gameCopy[targetY + 2][xCoord].name === 'knight' && gameCopy[targetY + 2][xCoord].color !== playerColor) {
-                    return true;
+                const piece = gameCopy[targetY + 2][xCoord];
+                if (piece && piece.name === 'knight' && piece.color !== playerColor) {
+                    return piece;
                 }
             }
         }
@@ -548,13 +555,15 @@ const Board = () => {
         xCoord = targetX + 1;
         if (xCoord >= 0) {
             if (targetY - 2 >= 0) {
-                if (gameCopy[targetY - 2][xCoord] && gameCopy[targetY - 2][xCoord].name === 'knight' && gameCopy[targetY - 2][xCoord].color !== playerColor) {
-                    return true;
+                const piece = gameCopy[targetY - 2][xCoord];
+                if (piece && piece.name === 'knight' && piece.color !== playerColor) {
+                    return piece;
                 }
             }
             if (targetY + 2 <= 7) {
-                if (gameCopy[targetY + 2][xCoord] && gameCopy[targetY + 2][xCoord].name === 'knight' && gameCopy[targetY + 2][xCoord].color !== playerColor) {
-                    return true;
+                const piece = gameCopy[targetY + 2][xCoord];
+                if (piece && piece.name === 'knight' && piece.color !== playerColor) {
+                    return piece;
                 }
             }
         }
@@ -564,48 +573,57 @@ const Board = () => {
         yCoord = targetY - 1;
         if (yCoord >= 0) {
             if (targetX - 1 >= 0) {
-                if (gameCopy[yCoord][targetX - 1] && gameCopy[yCoord][targetX - 1].name === 'king' && gameCopy[yCoord][targetX - 1].color !== playerColor) {
-                    return true;
+                const piece = gameCopy[yCoord][targetX - 1];
+                if (piece && piece.name === 'king' && piece.color !== playerColor) {
+                    return piece;
                 }
             }
-            if (gameCopy[yCoord][targetX] && gameCopy[yCoord][targetX].name === 'king' && gameCopy[yCoord][targetX].color !== playerColor) {
-                return true;
+            const piece = gameCopy[yCoord][targetX];
+            if (piece && piece.name === 'king' && piece.color !== playerColor) {
+                return piece;
             }
             if (targetX + 1 <= 7) {
-                if (gameCopy[yCoord][targetX + 1] && gameCopy[yCoord][targetX + 1].name === 'king' && gameCopy[yCoord][targetX + 1].color !== playerColor) {
-                    return true;
+                const piece = gameCopy[yCoord][targetX + 1];
+                if (piece && piece.name === 'king' && piece.color !== playerColor) {
+                    return piece;
                 }
             }
         }
         // check middle row
         yCoord = targetY;
         if (targetX - 1 >= 0) {
-            if (gameCopy[yCoord][targetX - 1] && gameCopy[yCoord][targetX - 1].name === 'king' && gameCopy[yCoord][targetX - 1].color !== playerColor) {
-                return true;
+            const piece = gameCopy[yCoord][targetX - 1];
+            if (piece && piece.name === 'king' && piece.color !== playerColor) {
+                return piece;
             }
         }
-        if (gameCopy[yCoord][targetX] && gameCopy[yCoord][targetX].name === 'king' && gameCopy[yCoord][targetX].color !== playerColor) {
-            return true;
+        const piece = gameCopy[yCoord][targetX];
+        if (piece && piece.name === 'king' && piece.color !== playerColor) {
+            return piece;
         }
         if (targetX + 1 <= 7) {
-            if (gameCopy[yCoord][targetX + 1] && gameCopy[yCoord][targetX + 1].name === 'king' && gameCopy[yCoord][targetX + 1].color !== playerColor) {
-                return true;
+            const piece = gameCopy[yCoord][targetX + 1];
+            if (piece && piece.name === 'king' && piece.color !== playerColor) {
+                return piece;
             }
         }
         // check bottom row
         yCoord = targetY + 1;
         if (yCoord <= 7) {
             if (targetX - 1 >= 0) {
-                if (gameCopy[yCoord][targetX - 1] && gameCopy[yCoord][targetX - 1].name === 'king' && gameCopy[yCoord][targetX - 1].color !== playerColor) {
-                    return true;
+                const piece = gameCopy[yCoord][targetX - 1];
+                if (piece && piece.name === 'king' && piece.color !== playerColor) {
+                    return piece;
                 }
             }
-            if (gameCopy[yCoord][targetX] && gameCopy[yCoord][targetX].name === 'king' && gameCopy[yCoord][targetX].color !== playerColor) {
-                return true;
+            const piece = gameCopy[yCoord][targetX];
+            if (piece && piece.name === 'king' && piece.color !== playerColor) {
+                return piece;
             }
             if (targetX + 1 <= 7) {
-                if (gameCopy[yCoord][targetX + 1] && gameCopy[yCoord][targetX + 1].name === 'king' && gameCopy[yCoord][targetX + 1].color !== playerColor) {
-                    return true;
+                const piece = gameCopy[yCoord][targetX + 1];
+                if (piece && piece.name === 'king' && piece.color !== playerColor) {
+                    return piece;
                 }
             }
         }
@@ -613,21 +631,21 @@ const Board = () => {
         // check for pawns
         if (playerColor === 'white') {
             if (gameCopy[targetY - 1][targetX - 1] && gameCopy[targetY - 1][targetX - 1].name === 'pawn' && gameCopy[targetY - 1][targetX - 1].color !== playerColor) {
-                return true;
+                return gameCopy[targetY - 1][targetX - 1];
             }
             if (gameCopy[targetY - 1][targetX + 1] && gameCopy[targetY - 1][targetX + 1].name === 'pawn' && gameCopy[targetY - 1][targetX + 1].color !== playerColor) {
-                return true;
+                return gameCopy[targetY - 1][targetX + 1];
             }
         } else {
             if (gameCopy[targetY + 1][targetX - 1] && gameCopy[targetY + 1][targetX - 1].name === 'pawn' && gameCopy[targetY + 1][targetX - 1].color !== playerColor) {
-                return true;
+                return gameCopy[targetY + 1][targetX - 1];
             }
             if (gameCopy[targetY + 1][targetX + 1] && gameCopy[targetY + 1][targetX + 1].name === 'pawn' && gameCopy[targetY + 1][targetX + 1].color !== playerColor) {
-                return true;
+                return gameCopy[targetY + 1][targetX + 1];
             }
         }
 
-        return false;
+        return null;
     };
 
     const renderSquare = (i) => {
@@ -656,8 +674,8 @@ const Board = () => {
 
     const whitePieces = deadPieces.whitePieces.map((piece) => (
         <div style={{
-            width: '30px',
-            height: '30px',
+            width: '25px',
+            height: '25px',
             backgroundImage: `url(${piece_icons[piece.color + '_' + piece.name]})`,
             backgroundSize: 'cover',
         }} />
@@ -665,8 +683,8 @@ const Board = () => {
 
     const blackPieces = deadPieces.blackPieces.map((piece) => (
         <div style={{
-            width: '30px',
-            height: '30px',
+            width: '25px',
+            height: '25px',
             backgroundImage: `url(${piece_icons[piece.color + '_' + piece.name]})`,
             backgroundSize: 'cover',
         }} />
@@ -674,9 +692,8 @@ const Board = () => {
 
     return (
         <>
-            <div>turn: {whitesMove ? 'white' : 'black'} {isInCheck && ' !!! PLAYER IS IN CHECK !!!'}</div>
             {whitePieces.length > 0 &&
-                <div style={{ display: 'flex', flexWrap: 'wrap', height: '30px', width: '400px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', height: '25px', width: '400px', float: 'right', justifyContent: 'flex-start' }}>
                     {whitePieces}
                 </div>
             }
@@ -684,10 +701,12 @@ const Board = () => {
                 {squares}
             </div>
             {blackPieces.length > 0 &&
-                <div style={{ display: 'flex', flexWrap: 'wrap', height: '30px', width: '400px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', height: '25px', width: '400px', justifyContent: 'flex-end' }}>
                     {blackPieces}
                 </div>
             }
+            {isInCheck && <div>!!! PLAYER IS IN CHECK !!!</div>}
+            <div>turn: {whitesMove ? 'white' : 'black'}</div>
             <div>selected x: {selected.x}, selected y: {selected.y}</div>
             <div>last move: {lastMove.x}, {lastMove.y}</div>
             {invalidMove && <div>Invalid Move!</div>}
