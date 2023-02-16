@@ -690,28 +690,63 @@ const Board = () => {
         }} />
     ));
 
-    return (
-        <>
-            {whitePieces.length > 0 &&
-                <div style={{ display: 'flex', flexWrap: 'wrap', height: '25px', width: '400px', float: 'right', justifyContent: 'flex-start' }}>
-                    {whitePieces}
-                </div>
-            }
+    const letter_list = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+    const letters = letter_list.map((letter) => (
+        <div style={{
+            width: '50px',
+            height: '20px',
+            textAlign: 'center',
+        }}>
+            {letter}
+        </div>
+    ));
+
+    const numbers_list = ['1', '2', '3', '4', '5', '6', '7', '8'];
+    const numbers = numbers_list.map((number) => (
+        <div style={{
+            display: 'flex',
+            width: '10px',
+            height: '50px',
+            textAlign: 'center',
+            top: '50%',
+            justifyContent: 'center',
+            alignContent: 'center',
+            flexDirection: 'column',
+        }}>
+            { number }
+        </div >
+    ));
+
+return (
+    <>
+        {whitePieces.length > 0 &&
+            <div style={{ display: 'flex', flexWrap: 'wrap', height: '30px', width: '400px', justifyContent: 'flex-start', paddingLeft: '6px' }}>
+                {whitePieces}
+            </div>
+        }
+        <div style={{ display: 'flex', height: '400px', width: '415px' }}>
+            <div style={{ height: '400px', width: '12px' }}>
+                {numbers}
+            </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', height: '400px', width: '400px', border: '1px solid black' }}>
                 {squares}
             </div>
-            {blackPieces.length > 0 &&
-                <div style={{ display: 'flex', flexWrap: 'wrap', height: '25px', width: '400px', justifyContent: 'flex-end' }}>
-                    {blackPieces}
-                </div>
-            }
-            {isInCheck && <div>!!! PLAYER IS IN CHECK !!!</div>}
-            <div>turn: {whitesMove ? 'white' : 'black'}</div>
-            <div>selected x: {selected.x}, selected y: {selected.y}</div>
-            <div>last move: {lastMove.x}, {lastMove.y}</div>
-            {invalidMove && <div>Invalid Move!</div>}
-        </>
-    );
+        </div>
+        <div style={{ display: 'flex', width: '400px', paddingLeft: '12px' }}>
+            {letters}
+        </div>
+        {blackPieces.length > 0 &&
+            <div style={{ display: 'flex', flexWrap: 'wrap', height: '25px', width: '400px', justifyContent: 'flex-end', paddingLeft: '18px' }}>
+                {blackPieces}
+            </div>
+        }
+        {isInCheck && <div style={{paddingLeft: '12px'}}>!!! PLAYER IS IN CHECK !!!</div>}
+        <div style={{paddingLeft: '12px'}}>turn: {whitesMove ? 'white' : 'black'}</div>
+        <div style={{paddingLeft: '12px'}}>selected x: {selected.x}, selected y: {selected.y}</div>
+        <div style={{paddingLeft: '12px'}}>last move: {lastMove.x}, {lastMove.y}</div>
+        {invalidMove && <div style={{paddingLeft: '12px'}}>Invalid Move!</div>}
+    </>
+);
 };
 
 export default Board;
